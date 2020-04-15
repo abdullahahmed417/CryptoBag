@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import java.io.IOException;
@@ -51,7 +52,6 @@ public class DetailFragment extends Fragment {
                         }
                     }
                     updateUi();
-                    DetailFragment.this.getActivity().setTitle(mCoin.getName());
                 }
 
                 @Override
@@ -71,7 +71,7 @@ public class DetailFragment extends Fragment {
 
     private void updateUi() {
         View rootView = getView();
-        if(mCoin != null) {
+        if(rootView != null && mCoin != null) {
             NumberFormat formatter = NumberFormat.getCurrencyInstance();
             ((TextView) rootView.findViewById(R.id.tvName)).setText(mCoin.getName());
             ((TextView) rootView.findViewById(R.id.tvSymbol)).setText(mCoin.getSymbol());
@@ -87,6 +87,7 @@ public class DetailFragment extends Fragment {
                     searchCoin(mCoin.getName());
                 }
             });
+            ((AppCompatActivity) rootView.getContext()).setTitle(mCoin.getName());
         }
     }
 
