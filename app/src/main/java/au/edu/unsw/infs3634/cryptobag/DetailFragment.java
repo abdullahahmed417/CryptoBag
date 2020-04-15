@@ -14,6 +14,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.room.Room;
 
+import com.bumptech.glide.Glide;
+
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.List;
@@ -54,6 +56,10 @@ public class DetailFragment extends Fragment {
         View rootView = getView();
         if(rootView != null && mCoin != null) {
             NumberFormat formatter = NumberFormat.getCurrencyInstance();
+            Glide.with(this)
+                    .load("https://c1.coinlore.com/img/25x25/" + mCoin.getNameid() + ".png")
+                    .fitCenter()
+                    .into((ImageView) rootView.findViewById(R.id.imageView));
             ((TextView) rootView.findViewById(R.id.tvName)).setText(mCoin.getName());
             ((TextView) rootView.findViewById(R.id.tvSymbol)).setText(mCoin.getSymbol());
             ((TextView) rootView.findViewById(R.id.tvValueField)).setText(formatter.format(Double.valueOf(mCoin.getPriceUsd())));
