@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.room.Room;
 
 import java.io.IOException;
 import java.text.NumberFormat;
@@ -28,15 +29,17 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class DetailFragment extends Fragment {
     public static final String ARG_ITEM_ID = "item_id";
     private Coin mCoin;
+    private CoinDatabase mDb;
 
     public DetailFragment() {}
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mDb = Room.databaseBuilder(getContext(), CoinDatabase.class, "coin-database").build();
 
         if(getArguments().containsKey(ARG_ITEM_ID)) {
-            new GetCoinTask().execute();
+            new GetCoinDBTask().execute(getArguments().getString(ARG_ITEM_ID));
         }
     }
 
@@ -74,33 +77,16 @@ public class DetailFragment extends Fragment {
         startActivity(intent);
     }
 
-    private class GetCoinTask extends AsyncTask<Void, Void, List<Coin>> {
+    private class GetCoinDBTask extends AsyncTask<String, Void, Coin> {
         @Override
-        protected List<Coin> doInBackground(Void... voids) {
-            try {
-                Retrofit retrofit = new Retrofit.Builder()
-                        .baseUrl("https://api.coinlore.com")
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .build();
-                CoinService service = retrofit.create(CoinService.class);
-                Call<CoinLoreResponse> coinsCall = service.getCoins();
-                Response<CoinLoreResponse> coinsResponse = coinsCall.execute();
-                List<Coin> coins = coinsResponse.body().getData();
-                return coins;
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            }
+        protected Coin doInBackground(String... ids) {
+            return mDb.coinDao().getCoin(ids[0]);
         }
 
         @Override
-        protected void onPostExecute(List<Coin> coins) {
-            for(Coin coin : coins) {
-                if(coin.getId().equals(getArguments().getString(ARG_ITEM_ID))) {
-                    mCoin = coin;
-                    updateUi();
-                }
-            }
+        protected void onPostExecute(Coin coin) {
+            mCoin = coin;
+            updateUi();
         }
     }
 }

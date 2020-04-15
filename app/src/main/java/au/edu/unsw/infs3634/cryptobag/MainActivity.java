@@ -6,6 +6,7 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class MainActivity extends AppCompatActivity {
     private boolean mTwoPane;
     private CoinAdapter mAdapter;
+    private CoinDatabase mDb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +40,9 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new CoinAdapter(this, new ArrayList<Coin>(), mTwoPane);
         mRecyclerView.setAdapter(mAdapter);
+        mDb = Room.databaseBuilder(getApplicationContext(), CoinDatabase.class, "coin-database").build();
+
+        new GetCoinDBTask().execute();
         new GetCoinTask().execute();
     }
 
@@ -53,11 +58,26 @@ public class MainActivity extends AppCompatActivity {
                 Call<CoinLoreResponse> coinsCall = service.getCoins();
                 Response<CoinLoreResponse> coinsResponse = coinsCall.execute();
                 List<Coin> coins = coinsResponse.body().getData();
+                mDb.coinDao().deleteAll(mDb.coinDao().getCoins().toArray(new Coin[mDb.coinDao().getCoins().size()]));
+                mDb.coinDao().insertAll(coins.toArray(new Coin[coins.size()]));
                 return coins;
             } catch (IOException e) {
                 e.printStackTrace();
                 return null;
             }
+        }
+
+        @Override
+        protected void onPostExecute(List<Coin> coins) {
+            mAdapter.setCoins(coins);
+        }
+    }
+
+    private class GetCoinDBTask extends AsyncTask<Void, Void, List<Coin>> {
+
+        @Override
+        protected List<Coin> doInBackground(Void... voids) {
+            return mDb.coinDao().getCoins();
         }
 
         @Override
